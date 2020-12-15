@@ -10,25 +10,38 @@ router.use(express.urlencoded({ extended: true }));
 router.use(express.json());
 
 // using validator 
-const validator = require('./auth/middleware/validator');
+const validator = require('../middleware/validator');
 
+// routes 
 router.post('/signup', signUpHandler);
 router.post('/signin', validator, signInHandler);
 
 async function signUpHandler (req, res) {
     try {
         req.body.password = await bcrypt.hash(req.body.password, 10);
+        console.log('hash password: ', req.body.password);
         const user = new Users(req.body);
         const record = await user.save(req.body);
         res.status(200).json(record);
-      } catch (e) { res.status(403).send("Error Creating User"); }
+      } catch (e) { 
+        res.status(403).send("Error Creating User"); 
+      }
 }
 
-function signInHandler (req, res) {
-  let basicHeaderParts = req.headers.authorization.split(' ');  // ['Basic', 'sdkjdsljd=']
-  let encodedString = basicHeaderParts.pop();  // sdkjdsljd=
-  let decodedString = base64.decode(encodedString); // "username:password"
-  let [username, password] = decodedString.split(':'); // username, password
+async function signInHandler (req, res) {
+  try {
+    let {username, password} = req.body;
+    console.log('object username ', {username: username})
+    const user = await Users.findOne({ username: username })
+    console.log('user ', user);
+    const valid = await bcrypt.compare(password, user.password);
+    if (valid) {
+      res.status(200).json(user);
+    }
+    else {
+      throw new Error('Invalid User')
+    }
+  } catch (error) { res.status(403).send("Invalid Login"); }  
 }
 
 module.exports = router;
