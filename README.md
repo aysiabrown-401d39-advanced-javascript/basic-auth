@@ -30,3 +30,6 @@
 - Do the routes assert the requirements (signup/signin) (to be added)
  
 *Note:* I am still very confused on writing unit tests mocking a database using supergoose. 
+
+**UML**
+![uml](./assets/uml.png)
